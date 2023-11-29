@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean name="registerReceiver" scope="singleton" class="com.example.demochat.Receivers.ClientSide.RegisterClientSideRequestResponseReceiver"></bean>
+    <bean
+            name="registerAction"
+            class="com.example.demochat.Actions.ClientSide.RegisterClientSideRequestAction"
+
+    >
+        <property name="mediator" ref="mediator1"></property>
+
+    </bean>
+
+    
+    <bean id="registerUtils"  scope="singleton" class="com.example.demochat.ListenerUtils.RegisterClientUtils">
+        <property name="registerClientSideRequestAdapter" >
+            <bean class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
+                <constructor-arg name="defaultListenerMethod"
+                                 value="receiveMessage"
+
+                >
+                </constructor-arg>
+                <constructor-arg
+                        name="delegate"
+
+                        ref="registerReceiver"
+                >
+                    <!--type="java.lang.String"-->
+                    <!-- type="java.lang.Object"-->
+                </constructor-arg>
+            </bean>
+        </property>
+        <property name="action" ref="registerAction">
+        </property>
+    </bean>
+
+    <!--<bean id="connection" scope="singleton"
+          class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"
+
+    >
+        <constructor-arg name="host" value="192.168.56.1" >
+
+        </constructor-arg>
+        <constructor-arg name="port" value="6379">
+
+        </constructor-arg>
+        &lt;!&ndash;class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"&ndash;&gt;
+        &lt;!&ndash;class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"&ndash;&gt;
+    </bean>-->
+    <!--<bean id="template" scope="singleton"
+          class="org.springframework.data.redis.core.StringRedisTemplate"
+    >
+        <constructor-arg name="connectionFactory" ref="connection">
+
+        </constructor-arg>
+    </bean>-->
+    <bean id="visitor" scope="singleton"
+          class="com.example.demochat.Visitor.ClientMessageVisitor"
+
+    >
+        <property name="mediator" ref="mediator1" >
+
+        </property>
+    </bean>
+
+
+    <bean id="mediator1" scope="singleton"
+          class="com.example.demochat.Mediator.ClientMessageMediator"
+
+
+    >
+
+        <constructor-arg
+                name="registerUtils"
+                ref="registerUtils"
+        >
+        </constructor-arg>
+
+        <property name="visitor" ref="visitor"></property>
+    </bean>
+
+</beans>

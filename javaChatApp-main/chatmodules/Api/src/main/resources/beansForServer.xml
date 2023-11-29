@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xsi:schemaLocation
+               ="http://www.springframework.org/schema/beans
+               http://www.springframework.org/schema/beans/spring-beans.xsd
+               http://www.springframework.org/schema/lang
+               http://www.springframework.org/schema/lang/spring-lang.xsd
+               http://www.springframework.org/schema/data/jpa
+               http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+    ">
+
+
+    <import resource="jpabeans.xml"/>
+    <import resource="beansformongodb.xml"/>
+
+
+
+
+    <bean name="registerReceiver" scope="singleton" class="com.example.demochat.Receivers.ServerSide.RegisterServerSideRequestReceiver">
+        <property name="mediator" ref="mediator">
+
+        </property>
+    </bean>
+    <bean
+            name="registerAction"
+            class="com.example.demochat.Actions.ServverSide.RegisterServerSideResponseAction"
+
+    >
+        <property name="mediator" ref="mediator"></property>
+
+    </bean>
+
+
+    <bean id="connection" scope="singleton"
+          class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"
+    >
+
+    </bean>
+
+    <bean id="template" scope="singleton"
+          class="org.springframework.data.redis.core.StringRedisTemplate"
+    >
+        <constructor-arg name="connectionFactory" ref="connection">
+
+        </constructor-arg>
+    </bean>
+    <bean id="registerUtils"  depends-on="registerAction registerReceiver " scope="singleton" class="com.example.demochat.ListenerUtils.RegisterServerUtils">
+        <property name="registerServerAdapter" >
+            <bean class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
+                <constructor-arg name="defaultListenerMethod"
+                                 value="receiveMessage"
+
+                >
+                </constructor-arg>
+                <constructor-arg
+                        name="delegate"
+
+                        ref="registerReceiver"
+                >
+                    <!--type="java.lang.String"-->
+                    <!-- type="java.lang.Object"-->
+                </constructor-arg>
+            </bean>
+        </property>
+
+        <property name="registerServerResponseAction" ref="registerAction">
+
+        </property>
+    </bean>
+
+
+    <bean name="mediator" depends-on="registerUtils" class="com.example.demochat.Mediator.ServerMessageMediator">
+
+
+        <constructor-arg name="connectionFactory" ref="connection">
+
+        </constructor-arg>
+
+        <constructor-arg name="template" ref="template">
+
+        </constructor-arg>
+        <constructor-arg name="registerUtils" ref="registerUtils">
+
+        </constructor-arg>
+    </bean>
+
+
+</beans>
